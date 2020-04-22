@@ -111,6 +111,22 @@ $current = ""
 $sockss = Hash.new
 $b64ss = Hash.new
 
+def receiveHandler from, content, push = true
+  $msgs[from] = "#{from}, #{Time.new.strftime("%d/%m/%Y %H:%M")}: #{content}\n" + $msgs[from]
+  if $current == from
+    $msgBox.text = "#{from}, #{Time.new.strftime("%d/%m/%Y %H:%M")}: #{content}\n" + $msgBox.text
+  else
+    if push
+      Thread.new {
+        old = $consoleLabel.text
+        $consoleLabel.text = "New message from #{from}"
+        sleep 2
+        $consoleLabel.text = old
+      }
+    end
+  end
+end
+
 def randomcode len=32
   symbols = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890"
   res = ""
@@ -182,8 +198,7 @@ class MsgWindow < Fox::FXMainWindow
       rescue
         $consoleLabel.text = "#{$current} is offline."
       end
-      $msgs[$current] = "#{$nickname}, #{Time.new.strftime("%d/%m/%Y %H:%M")}: #{sendtextBox.text}\n" + $msgs[$current]
-      $msgBox.text = "#{$nickname}, #{Time.new.strftime("%d/%m/%Y %H:%M")}: #{sendtextBox.text}\n" + $msgBox.text
+      receiveHandler $current, sendtextBox.text, false
       sendtextBox.text = ""
     end
   end
@@ -313,17 +328,7 @@ class OptionsWindow < Fox::FXMainWindow
             if (msg = sock.gets).nil? == false
               msg = msg.chomp
                 if msg[0..26] == "I have a message for you - "
-                  $msgs[remname] = "#{remname}, #{Time.new.strftime("%d/%m/%Y %H:%M")}: #{msg[27..-1]}\n" + $msgs[remname]
-                  if $current == remname
-                    $msgBox.text = "#{remname}, #{Time.new.strftime("%d/%m/%Y %H:%M")}: #{msg[27..-1]}\n" + $msgBox.text
-                  else
-                    Thread.new {
-                      old = $consoleLabel.text
-                      $consoleLabel.text = "New message from #{remname}"
-                      sleep 2
-                      $consoleLabel.text = old
-                    }
-                  end
+                  receiveHandler remname, msg[27..-1]
                 end
               end
             rescue
@@ -465,17 +470,7 @@ class OptionsWindow < Fox::FXMainWindow
                 if (msg = sock.gets).nil? == false
                   msg = msg.chomp
                   if msg[0..26] == "I have a message for you - "
-                    $msgs[remname] = "#{remname}, #{Time.new.strftime("%d/%m/%Y %H:%M")}: #{msg[27..-1]}\n" + $msgs[remname]
-                    if $current == remname
-                      $msgBox.text = "#{remname}, #{Time.new.strftime("%d/%m/%Y %H:%M")}: #{msg[27..-1]}\n" + $msgBox.text
-                      else
-                        Thread.new {
-                          old = $consoleLabel.text
-                          $consoleLabel.text = "New message from #{remname}"
-                          sleep 2
-                          $consoleLabel.text = old
-                        }
-                    end
+                    receiveHandler remname, msg[27..-1]
                   end
                 end
               rescue
