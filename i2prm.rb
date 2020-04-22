@@ -111,6 +111,8 @@ $current = ""
 $sockss = Hash.new
 $b64ss = Hash.new
 
+$dark = true if ARGV[0] == "dark"
+
 def receiveHandler from, content, push = true
   $msgs[from] = "#{from}, #{Time.new.strftime("%d/%m/%Y %H:%M")}: #{content}\n" + $msgs[from]
   if $current == from
@@ -137,6 +139,24 @@ def randomcode len=32
   return res
 end
 
+def textBoxDark obj, bg = Fox.FXRGB(26, 26, 26)
+  obj.backColor = bg
+  obj.textColor = Fox.FXRGB(255, 255, 255)
+  obj.cursorColor = Fox.FXRGB(255, 0, 0)
+  obj.selTextColor = Fox.FXRGB(204, 204, 204)
+  obj.selBackColor = Fox.FXRGB(51, 0, 0)
+end
+
+def labelDark obj, nativeBg = Fox.FXRGB(0, 0, 0)
+  obj.backColor = nativeBg
+  obj.textColor = Fox.FXRGB(242, 242, 242)
+end
+
+def buttonDark obj
+  obj.backColor = Fox.FXRGB(26, 26, 26)
+  obj.textColor = Fox.FXRGB(255, 255, 255)
+end
+
 class MsgWindow < Fox::FXMainWindow
   
   include Fox
@@ -145,7 +165,7 @@ class MsgWindow < Fox::FXMainWindow
     super(app, "Messages", :width=>600, :height=>400)
     
     mainFrame = FXHorizontalFrame.new self, :opts => LAYOUT_FILL
-    $contactsBox = FXList.new mainFrame, :opts => LAYOUT_FILL_Y
+    $contactsBox = FXList.new mainFrame, :opts => LAYOUT_FILL_Y|LIST_SINGLESELECT
     
     msgFrame = FXVerticalFrame.new mainFrame, :opts => LAYOUT_FILL
     $msgBox = FXText.new msgFrame, :opts => LAYOUT_FILL|TEXT_AUTOSCROLL
@@ -155,9 +175,24 @@ class MsgWindow < Fox::FXMainWindow
     $b64ShowBox.editable = false
     
     sendFrame = FXHorizontalFrame.new msgFrame
-    sendtextBox = FXTextField.new sendFrame, 50
+    sendtextBox = FXTextField.new sendFrame, 50, :opts => LAYOUT_FILL_X
     sendButton = FXButton.new sendFrame, "Send"
     closeButton = FXButton.new sendFrame, "Close"
+    
+    if $dark
+      mainFrame.backColor = Fox.FXRGB(0, 0, 0)
+      $contactsBox.backColor = Fox.FXRGB(26, 26, 26)
+      $contactsBox.textColor = Fox.FXRGB(255, 255, 255)
+      $contactsBox.selBackColor = Fox.FXRGB(0, 77, 0)
+      msgFrame.backColor = Fox.FXRGB(0, 0, 0)
+      textBoxDark $msgBox
+      textBoxDark $b64ShowBox
+      sendFrame.backColor = Fox.FXRGB(0, 0, 0)
+      textBoxDark sendtextBox
+      sendtextBox.backColor = Fox.FXRGB(13, 13, 13)
+      buttonDark sendButton
+      buttonDark closeButton
+    end
     
     $contactsBox.connect SEL_COMMAND do |sender, sel, index|
       $current = $contactsBox.getItem(sender.currentItem).text
@@ -215,27 +250,54 @@ class OptionsWindow < Fox::FXMainWindow
   include Fox
   
   def initialize app
-    super(app, "I2P Row Messanger", :width=>600, :height=>100)
+    super(app, "I2P Row Messanger", :width=>335, :height=>145)
     
-    nicknameFrame = FXHorizontalFrame.new self
+    bgColor = Fox.FXRGB(13, 13, 13)
+    tbBgColor = Fox.FXRGB(26, 26, 26)
+    self.backColor = bgColor if $dark
+    
+    nicknameFrame = FXHorizontalFrame.new self, :padBottom => 3
     nicknameBoxLabel = FXLabel.new nicknameFrame, "Nickname:"
-    nicknameBox = FXTextField.new nicknameFrame, 20
+    nicknameBox = FXTextField.new nicknameFrame, 20, :opts => LAYOUT_FILL_X
     nicknameBox.text = randomcode 7
     connectButton = FXButton.new nicknameFrame, "Connect"
-    b64BoxLabel = FXLabel.new nicknameFrame, "Your base64: "
-    b64Box = FXTextField.new nicknameFrame, 10
+    if $dark
+      connectButton.borderColor = Fox.FXRGB(0, 255, 255)
+      connectButton.shadowColor = Fox.FXRGB(255, 0, 255)
+      buttonDark connectButton
+    else
+      connectButton.borderColor = Fox.FXRGB(255, 0, 0)
+      connectButton.shadowColor = Fox.FXRGB(0, 255, 0)
+    end
+    
+    b64Frame = FXHorizontalFrame.new self, :padBottom => 3, :padTop => 0
+    b64BoxLabel = FXLabel.new b64Frame, "Your base64: "
+    b64Box = FXTextField.new b64Frame, 28, :opts => LAYOUT_FILL_X
     b64Box.editable = false
     
-    addFrame = FXHorizontalFrame.new self
+    addFrame = FXHorizontalFrame.new self, :padBottom => 0, :padTop => 1.5
     cb64BoxLabel = FXLabel.new addFrame, "Contact's base64: "
-    cb64Box = FXTextField.new addFrame, 10
+    cb64Box = FXTextField.new addFrame, 13, :opts => LAYOUT_FILL_X
     addContactButton = FXButton.new addFrame, "Add contact"
     
     
-    statusFrame = FXHorizontalFrame.new self
-    $statusLabel = FXLabel.new statusFrame, "Status: Disconnected"
-    $consoleLabel = FXLabel.new statusFrame, "Console: "
+    $statusLabel = FXLabel.new self, "Status: Disconnected", :padBottom => 0, :padTop => 5, :padLeft => 15
+    $consoleLabel = FXLabel.new self, "Console: ", :padTop => 0, :padLeft => 15
     
+    if $dark
+      nicknameFrame.backColor = bgColor
+      labelDark nicknameBoxLabel, bgColor
+      textBoxDark nicknameBox, tbBgColor
+      b64Frame.backColor = bgColor
+      labelDark b64BoxLabel, bgColor
+      textBoxDark b64Box, tbBgColor
+      addFrame.backColor = bgColor
+      labelDark cb64BoxLabel, bgColor 
+      textBoxDark cb64Box, tbBgColor
+      buttonDark addContactButton
+      labelDark $statusLabel, bgColor
+      labelDark $consoleLabel, bgColor
+    end
     
     connectButton.connect(SEL_COMMAND) { connectHandler connectButton, nicknameBox, b64Box }
     addContactButton.connect(SEL_COMMAND) { addHandler cb64Box }
