@@ -110,6 +110,7 @@ $msgs = Hash.new
 $current = ""
 $sockss = Hash.new
 $b64ss = Hash.new
+$icon = "./img/i2prm.png"
 
 $dark = true if ARGV[0] == "dark"
 
@@ -163,6 +164,9 @@ class MsgWindow < Fox::FXMainWindow
   
   def initialize app
     super(app, "Messages", :width=>600, :height=>400)
+    
+    self.icon = $icon
+    self.miniIcon = $icon
     
     mainFrame = FXHorizontalFrame.new self, :opts => LAYOUT_FILL
     $contactsBox = FXList.new mainFrame, :opts => LAYOUT_FILL_Y|LIST_SINGLESELECT
@@ -251,6 +255,9 @@ class OptionsWindow < Fox::FXMainWindow
   
   def initialize app
     super(app, "I2P Row Messanger", :width=>335, :height=>145)
+    
+    self.icon = $icon
+    self.miniIcon = $icon
     
     bgColor = Fox.FXRGB(13, 13, 13)
     tbBgColor = Fox.FXRGB(26, 26, 26)
@@ -581,6 +588,13 @@ class OptionsWindow < Fox::FXMainWindow
 end
 
 app = Fox::FXApp.new
+
+if File.exist? "./img/i2prm.png"
+  fil = File.open $icon, "rb"
+  $icon = Fox::FXPNGIcon.new app, fil.read
+  fil.close
+end
+
 op = OptionsWindow.new app
 msg = MsgWindow.new app
 app.create
