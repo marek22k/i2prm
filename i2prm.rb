@@ -589,7 +589,7 @@ end
 
 app = Fox::FXApp.new
 
-if File.exist? "./img/i2prm.png"
+if File.exist? $icon
   fil = File.open $icon, "rb"
   $icon = Fox::FXPNGIcon.new app, fil.read
   fil.close
