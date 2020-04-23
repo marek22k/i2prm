@@ -58,7 +58,11 @@ Beim Start von i2prm öffnen sich zwei Fenster, wobei das eine das andere verdec
 In dem einem Fenster "Messages" findet man rechts eine Liste mit den Kontakten. In
 der Mitte den Chatverlauf. Die Textbox darunter beinhaltet die base64 des Kontaktes.
 Darunter ist eine Textbox mit der man Nachrichten schreiben kann. Zum Absenden kann
-man auf den "Send"-Button klicken. Um einen Kontakt zu entfernen kann man auf den
+man auf den "Send"-Button klicken. Diese Nachrichten werden dann zusätzlich mit einem
+Public Key Encryption Verfahren verschlüsselt. Um Nachrichten unverschlüsselt durch I2P
+zu senden, kann man auf den "U"-Button klicken. (Hinweis: Die Daten, welche in I2P
+transferiert werden, werden so oder so alle nocheinmal durch I2P verschlüsselt.
+Um einen Kontakt zu entfernen kann man auf den
 "Close-Button" klicken.
 Zum Start vom i2prm generiert das Programm eine Datei mit dem Namen "keys.b64".
 Diese Datei beinhaltet den öffentlichen und privaten Schlüssel für den Tunnel. Aus
@@ -341,7 +345,7 @@ class OptionsWindow < Fox::FXMainWindow
     ans = sock.gets.chomp
     if ans[0..7] != "Hi. I am"
       sock.puts "Your answer caused a protocol error. I will now disconnect."
-      $consoleLabel.text = "protocol error"
+      $consoleLabel.text = "protocol error: ans"
       sock.close
       return
     end
