@@ -109,7 +109,6 @@ end
 
 require "fox16"
 require "encryption"
-require "zlib"
 require "gdbm"
 
 $db = GDBM.new "i2prm.gdbm"
