@@ -110,9 +110,20 @@ end
 require "fox16"
 require "encryption"
 require "zlib"
+require "gdbm"
 
-$mykeypair = Encryption::Keypair.new 4096
-$sendpubkey = $mykeypair.public_key.to_s.chars.map { |c| c == "\n" ? "|" : c }.join
+$db = GDBM.new "i2prm.gdbm"
+at_exit { $db.close }
+
+if $db.has_key? "keypair-pubkey" and $db.has_key? "keypair-privkey"
+  $pubkey = Encryption::PublicKey.new $db["keypair-pubkey"].chars.map { |c| c == "|" ? "\n" : c }.join
+  $privkey = Encryption::PrivateKey.new $db["keypair-privkey"].chars.map { |c| c == "|" ? "\n" : c }.join
+else
+  $pubkey, $privkey = Encryption::Keypair.generate 4096
+  $db["keypair-pubkey"] = $pubkey.to_s.chars.map { |c| c == "\n" ? "|" : c }.join
+  $db["keypair-privkey"] = $privkey.to_s.chars.map { |c| c == "\n" ? "|" : c }.join
+end
+$sendpubkey = $db["keypair-pubkey"]
 $codelen = 32
 $codes = Hash.new
 $msgs = Hash.new
@@ -130,7 +141,7 @@ def unpackKey packedkey, remname
 end
 
 def receiveEncHandler from, enc, push = true
-  content = $mykeypair.private_key.decrypt enc.split(" ").map { |x| x.to_i }.pack("c*")
+  content = $privkey.decrypt enc.split(" ").map { |x| x.to_i }.pack("c*")
   receiveHandler from, content, push
 end
 
@@ -147,6 +158,14 @@ def receiveHandler from, content, push = true
         $consoleLabel.text = old
       }
     end
+  end
+end
+
+def putsHash remname
+  hash = Digest::SHA512.base64digest $keys[remname].to_s
+  $msgs[remname] = "[i2prm], #{Time.new.strftime("%d/%m/%Y %H:%M")}: The hash of contact #{remname} is #{hash}.\n#{$msgs[remname]}"
+  if $current == remname
+    $msgBox.text = "[i2prm], #{Time.new.strftime("%d/%m/%Y %H:%M")}: The hash of contact #{remname} is #{hash}.\n#{$msgBox.text}"
   end
 end
 
@@ -306,9 +325,14 @@ class OptionsWindow < Fox::FXMainWindow
     end
     
     b64Frame = FXHorizontalFrame.new self, :padBottom => 3, :padTop => 0
-    b64BoxLabel = FXLabel.new b64Frame, "Your base64: "
-    b64Box = FXTextField.new b64Frame, 28, :opts => LAYOUT_FILL_X
+    b64BoxLabel = FXLabel.new b64Frame, "Your base64:"
+    b64Box = FXTextField.new b64Frame, 11, :opts => LAYOUT_FILL_X
     b64Box.editable = false
+    
+    hashLabel = FXLabel.new b64Frame, "Your Hash:"
+    hashBox = FXTextField.new b64Frame, 6, :opts => LAYOUT_FILL_X
+    hashBox.editable = false
+    hashBox.text = Digest::SHA512.base64digest $pubkey.to_s
     
     addFrame = FXHorizontalFrame.new self, :padBottom => 0, :padTop => 1.5
     cb64BoxLabel = FXLabel.new addFrame, "Contact's base64: "
@@ -432,6 +456,7 @@ class OptionsWindow < Fox::FXMainWindow
       $contactsBox.appendItem(remname)
       $consoleLabel.text = "Ready. Recived public key: #{! $keys[remname].nil?}"
       $b64ss[remname] = cb64Box.text
+      putsHash remname
       
       Thread.new {
         loop do
@@ -467,6 +492,7 @@ class OptionsWindow < Fox::FXMainWindow
       nicknameBox.editable = false
       $nickname = nicknameBox.text
       $serv = Thread.new do
+        
         $cli = TCPSocket.new "127.0.0.1", 2827
         $consoleLabel.text = $cli.gets.chomp
         $consoleLabel.text = $cli.gets.chomp
@@ -475,10 +501,8 @@ class OptionsWindow < Fox::FXMainWindow
         $consoleLabel.text = $cli.gets.chomp
         
         
-        if File.exist?("keys.b64")
-          f = File.new("keys.b64")
-          $cli.puts "setkeys #{f.gets.chomp}"
-          f.close
+        if $db.has_key? "i2p-keys"
+          $cli.puts "setkeys #{$db["i2p-keys"]}"
           myb64 = $cli.gets.chomp
           b64Box.text = myb64[3..-1]
           $myb64 = myb64[3..-1]
@@ -488,10 +512,8 @@ class OptionsWindow < Fox::FXMainWindow
           b64Box.text = myb64[3..-1]
           $myb64 = myb64[3..-1]
           
-          f = File.new("keys.b64", "w")
           $cli.puts "getkeys"
-          f.puts $cli.gets.chomp[3..-1]
-          f.close
+          $db["i2p-keys"] = $cli.gets.chomp[3..-1]
         end
         
         
@@ -588,6 +610,7 @@ class OptionsWindow < Fox::FXMainWindow
             $contactsBox.appendItem(remname)
             $consoleLabel.text = "Ready. Recived public key: #{! $keys[remname].nil?}"
             $b64ss[remname] = b64
+            putsHash remname
             
             ## waiting
             loop do
