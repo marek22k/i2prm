@@ -149,15 +149,13 @@ def receiveHandler from, content, push = true
   $msgs[from] = "#{from}, #{Time.new.strftime("%d/%m/%Y %H:%M")}: #{content}\n#{$msgs[from]}"
   if $current == from
     $msgBox.text = "#{from}, #{Time.new.strftime("%d/%m/%Y %H:%M")}: #{content}\n#{$msgBox.text}"
-  else
-    if push
-      Thread.new {
-        old = $consoleLabel.text
-        $consoleLabel.text = "New message from #{from}"
-        sleep 2
-        $consoleLabel.text = old
-      }
-    end
+  elsif push
+    Thread.new {
+      old = $consoleLabel.text
+      $consoleLabel.text = "New message from #{from}"
+      sleep 2
+      $consoleLabel.text = old
+    }
   end
 end
 
