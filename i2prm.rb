@@ -118,9 +118,8 @@ if $db.has_key? "keypair-pubkey" and $db.has_key? "keypair-privkey"
   $pubkey = OpenSSL::PKey::RSA.new $db["keypair-pubkey"].chars.map { |c| c == "|" ? "\n" : c }.join
   $privkey = OpenSSL::PKey::RSA.new $db["keypair-privkey"].chars.map { |c| c == "|" ? "\n" : c }.join
 else
-  keypair = OpenSSL::PKey::RSA.new 4096
-  $pubkey = keypair.public_key
-  $privkey = keypair
+  $privkey = OpenSSL::PKey::RSA.new 4096
+  $pubkey = $privkey.public_key
   $db["keypair-pubkey"] = $pubkey.to_s.chars.map { |c| c == "\n" ? "|" : c }.join
   $db["keypair-privkey"] = $privkey.to_s.chars.map { |c| c == "\n" ? "|" : c }.join
 end
