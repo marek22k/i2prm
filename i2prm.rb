@@ -108,17 +108,19 @@ wiederrum mit einem Code verifiziert. Dies regelt i2prm automatisch.'
 end
 
 require "fox16"
-require "encryption"
 require "gdbm"
+require "openssl"
 
 $db = GDBM.new "i2prm.gdbm"
 at_exit { $db.close }
 
 if $db.has_key? "keypair-pubkey" and $db.has_key? "keypair-privkey"
-  $pubkey = Encryption::PublicKey.new $db["keypair-pubkey"].chars.map { |c| c == "|" ? "\n" : c }.join
-  $privkey = Encryption::PrivateKey.new $db["keypair-privkey"].chars.map { |c| c == "|" ? "\n" : c }.join
+  $pubkey = OpenSSL::PKey::RSA.new $db["keypair-pubkey"].chars.map { |c| c == "|" ? "\n" : c }.join
+  $privkey = OpenSSL::PKey::RSA.new $db["keypair-privkey"].chars.map { |c| c == "|" ? "\n" : c }.join
 else
-  $pubkey, $privkey = Encryption::Keypair.generate 4096
+  keypair = OpenSSL::PKey::RSA.new 4096
+  $pubkey = keypair.public_key
+  $privkey = keypair
   $db["keypair-pubkey"] = $pubkey.to_s.chars.map { |c| c == "\n" ? "|" : c }.join
   $db["keypair-privkey"] = $privkey.to_s.chars.map { |c| c == "\n" ? "|" : c }.join
 end
@@ -136,11 +138,11 @@ $dark = true if ARGV[0] == "dark"
 $keys = Hash.new
 
 def unpackKey packedkey, remname
-  $keys[remname] = Encryption::PublicKey.new packedkey.chars.map { |c| c == "|" ? "\n" : c }.join
+  $keys[remname] = OpenSSL::PKey::RSA.new packedkey.chars.map { |c| c == "|" ? "\n" : c }.join
 end
 
 def receiveEncHandler from, enc, push = true
-  content = $privkey.decrypt enc.split(" ").map { |x| x.to_i }.pack("c*")
+  content = $privkey.private_decrypt enc.split(" ").map { |x| x.to_i }.pack("c*")
   receiveHandler from, content, push
 end
 
@@ -273,7 +275,7 @@ class MsgWindow < Fox::FXMainWindow
     else
       #begin
         if enc
-          sock.puts "I have an encrypted message for you - #{$keys[$current].encrypt(sendtextBox.text).bytes.join " "}"
+          sock.puts "I have an encrypted message for you - #{$keys[$current].public_encrypt(sendtextBox.text).bytes.join " "}"
         else
           sock.puts "I have a message for you - #{sendtextBox.text}"
         end
