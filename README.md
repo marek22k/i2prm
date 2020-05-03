@@ -72,13 +72,10 @@ confirm that it actually came from the sender. Unencrypted messages are not sign
 
 ## How do I change the key strength?
 
-**_Note: To change this, you have to change the source code of the program._**  
 The default strength is 4096 bytes.  
-This key is used to encrypt/decrypt the received messages.
+This key is used to encrypt, decrypt, sign and verify messages.
 
-1.  Open the i2prm.rb file with any editor. However, I recommend using syntax highlighting for an overview.
-2.  Find the line with the following content: `$mykeypair = Encryption::Keypair.new 4096`
-3.  Replace the number 4096 with the desired key strength.
+1.  
 
 ## How do I change the length of the verification string?
 
@@ -86,6 +83,13 @@ This key is used to encrypt/decrypt the received messages.
 The connection partner is sent a verification string to confirm that it has  
 transmitted its real base64\. The default length is 32 characters.
 
-1.  Open the i2prm.rb file with any editor. However, I recommend using syntax highlighting for an overview.
-2.  Find the line with the following content: `$codelen = 32`
-3.  Replace the number 32 with the desired key length.
+1.  Execute helper script editkeystrength.rb. As the first argument, enter the new desired key length.
+** Attention: The old key will be deleted. **
+
+
+How can I activate the BOB API?
+===============================
+
+To do this, go to the settings of your I2P router at http://127.0.0.1:7657/configclients
+Under "BOB application bridge" you can see whether the BOB API has started and whether it is automatically started by the I2P router when it starts.
+If you want to use i2prm more often, we recommend the option "Run at Startup?" to activate.
