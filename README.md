@@ -75,7 +75,8 @@ confirm that it actually came from the sender. Unencrypted messages are not sign
 The default strength is 4096 bytes.  
 This key is used to encrypt, decrypt, sign and verify messages.
 
-1.  
+1.  Execute helper script editkeystrength.rb. As the first argument, enter the new desired key length.
+** Attention: The old key will be deleted. **
 
 ## How do I change the length of the verification string?
 
@@ -83,8 +84,9 @@ This key is used to encrypt, decrypt, sign and verify messages.
 The connection partner is sent a verification string to confirm that it has  
 transmitted its real base64\. The default length is 32 characters.
 
-1.  Execute helper script editkeystrength.rb. As the first argument, enter the new desired key length.
-** Attention: The old key will be deleted. **
+1.  Open the i2prm.rb file with any editor. However, I recommend using syntax highlighting for an overview.
+2.  Find the line with the following content: `$codelen = 32`
+3.  Replace the number 32 with the desired key length.
 
 
 How can I activate the BOB API?
