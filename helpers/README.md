@@ -19,6 +19,7 @@ readi2prmdb.rb
 rmpubkeyfromi2prmdb.rb
 ----------------------
 short for "remove public key from i2prm database"
+
 * Function: i2prm was changed so that it only stores the private and not the public key in the .gdbm database file, since the public key can now be restored from the private. However, some old .gdbm database files can still contain the public key. This script removes this redundant information.
 * Arguments: The .gdbm file; If not specified, the default name "i2prm.gdbm" is used.
 * Return: The result or the current status
@@ -26,6 +27,7 @@ short for "remove public key from i2prm database"
 editkeystrength.rb
 ------------------
 ** Attention: The old key will be deleted. **
+
 * Function: The script generates a new key for encrypting the messages.
 * Arguments: The first argument is the new key strength. This must be greater than 512 bytes. The second argument is optional and specifies the .gdbm file. If no name is given, an attempt is made to read the "i2prm.gdbm" file.
 * Return: The result or the current status
