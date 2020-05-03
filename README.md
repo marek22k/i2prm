@@ -4,12 +4,6 @@ i2prm is a peer-to-peer messenger that uses the I2P network. The BOB API is used
 
 1.  Install the Ruby interpreter. There is a manual on [ruby-lang.org](https://www.ruby-lang.org/en/downloads/)
 2.  Install fxruby. First, a few components have to be installed in Ubuntu/Debian:  
-    `sudo apt-get install`
-
-## Download and install i2prm
-
-1.  Install the Ruby interpreter. There is a manual on [ruby-lang.org](https://www.ruby-lang.org/en/downloads/)
-2.  Install fxruby. First, a few components have to be installed in Ubuntu/Debian:  
     `sudo apt-get install g++ libxrandr-dev libfox-1.6-dev` command.  
     There's nothing to do with Windows.  
     To install the gem you can run `gem install fxruby` on the command line.
