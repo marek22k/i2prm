@@ -14,7 +14,6 @@ db = GDBM.new ARGV[0], 0555, GDBM::READER
 
 puts "Found entries: #{db.keys.join ", "}\n\n"
 puts "I2P Keypair:\n#{db["i2p-keys"]}\n\n"
-puts "Encryption private key:\n#{db["keypair-privkey"].chars.map { |c| c == "|" ? "\n" : c }.join}\n"
-puts "Encryption public key:\n#{db["keypair-pubkey"].chars.map { |c| c == "|" ? "\n" : c }.join}"
+puts "Encryption private key:\n#{db["keypair-privkey"].chars.map { |c| c == "|" ? "\n" : c }.join}"
 
 db.close
