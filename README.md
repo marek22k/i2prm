@@ -76,6 +76,7 @@ The default strength is 4096 bytes.
 This key is used to encrypt, decrypt, sign and verify messages.
 
 1.  Execute helper script editkeystrength.rb. As the first argument, enter the new desired key length.
+
 ** Attention: The old key will be deleted. **
 
 ## How do I change the length of the verification string?
