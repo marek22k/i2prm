@@ -52,41 +52,97 @@ elsif ARGV[0] == "whyrescue"
   exit
 elsif ARGV[0] == "help"
   
-  $helptext = 'I2P Row Messenger (kurz i2prm) ist ein Nachrichtenvermittler für I2P.
-Er benutzt das BOB API und verbindet sich Peer-to-Peer.
-Beim Start von i2prm öffnen sich zwei Fenster, wobei das eine das andere verdeckt.
-In dem einem Fenster "Messages" findet man rechts eine Liste mit den Kontakten. In
-der Mitte den Chatverlauf. Die Textbox darunter beinhaltet die base64 des Kontaktes.
-Darunter ist eine Textbox mit der man Nachrichten schreiben kann. Zum Absenden kann
-man auf den "Send"-Button klicken. Diese Nachrichten werden dann zusätzlich mit einem
-Public Key Encryption Verfahren verschlüsselt. Um Nachrichten unverschlüsselt durch I2P
-zu senden, kann man auf den "U"-Button klicken. (Hinweis: Die Daten, welche in I2P
-transferiert werden, werden so oder so alle nocheinmal durch I2P verschlüsselt.
-Um einen Kontakt zu entfernen kann man auf den
-"Close-Button" klicken.
-Zum Start vom i2prm generiert das Programm eine Datei mit dem Namen "keys.b64".
-Diese Datei beinhaltet den öffentlichen und privaten Schlüssel für den Tunnel. Aus
-dieser Datei wird dann auch die base64 erzeugt. Möchte man also eine andere base64
-oder verschiedenen haben, kann man die Datei keys.b64 löschen bzw. umbenennen oder
-verschieben.
-Das andere Fenster beinhaltet die Tools um Verbindungen aufbauen zukönnen. In der
-"Nickname"-Box gibt man einen individuellen Nicknamen ein. Wenn man keinen Eingeben
-möchte, kann man aber auch die 7-stellige Zeichenfolge drinnen lassen. Danach klickt
-man zum Verbinden auf den "Connect"-Button. Dies dauert eine Weile. Steht unten
-"Status: Connected", hat der Messenger erfolgreich seine Tunnel hergestellt. Bei
-"Your base64:" findet man seine eigene base64. Diese kann man dann z. B. mit
-Freunden oder Bekannten teilen. Hat man von jemanden eine base64 erhalten und
-möchte ihn kontaktieren, kann die die base64 bei "Contact*s base64:" hinzufügen.
-Dann kann man auf "Add contact" klicken und eine Weile warten. Dies dauert bis zu
-einer Minute. Wenn der Vorgang erfolgreich abgeschlossen ist, steht unter "Ready.".
-Bei hinzufügen eines Kontaktes teilt man automatisch seine base64. Diese wird
-wiederrum mit einem Code verifiziert. Dies regelt i2prm automatisch.
+  $helptext = 'i2prm is a peer-to-peer messenger that uses the I2P network.
+The BOB API is used to communicate with the I2P router.
+The messages can be encrypted again in addition to the I2P encryption.
+  
+Download and install i2prm
 
-Im Chat mit jemand anderem steht etwas in Eckigen Klammern []:
-  u = unverschlüsselt
-  m = ist man selber
-  v = die signatur des absender war richtig
-  i = die signatur des abesnder war falsch'
+    Install the Ruby interpreter. There is a manual on ruby-lang.org
+    Install fxruby. First, a few components have to be installed in Ubuntu/Debian:
+    sudo apt-get install g++ libxrandr-dev libfox-1.6-dev command.
+    There\'s nothing to do with Windows.
+    To install the gem you can run gem install fxruby on the command line.
+    Next you can download the current version on BitBucket [Mirror].
+    If necessary, the i2prm.rb file must be extracted from the ZIP folder.
+    The program can then be started from the command line with ruby i2prm.rb.
+
+How do I connect i2prm to the I2P network?
+
+    Enter a nickname in the I2P Row Messenger window if necessary. This is freely selectable.
+    Anyone who knows your base64 can also determine your nickname. If you don\'t want to type
+    in, you can also leave the randomly generated nickname.
+    Then click the "Connect" button and wait. Depending on how well the I2P router is integrated,
+    this process can take a little longer. When the process has been successfully completed,
+    the status changes to "Connected" and the message "OK tunnel starting" appears below.
+
+How do I connect to someone else?
+
+    In the "I2P Row Messenger" window in the "Contact\'s base64:"
+    text box, enter the base64 address of the contact you want to add.
+    Next click on Add contact.
+    Wait a few seconds. This process can take up to a minute.
+        The text "Ready. Receive public: true" should appear on the lower label.
+        If the Java error "no route to host" appears, one of the two contacts is not
+        integrated enough in the I2P network. It\'s best to try again in a few
+        minutes. If it still doesn\'t work, restarting i2prm can sometimes help.
+    If the connection process was successful, the nickname of the contact appears
+    next in the Contact List in the Messages window.
+
+How do I send a message?
+
+    In the Messages window in the contact list, select the nickname to which you want to send a message.
+    Enter the message in the bottom text box of the Messages window.
+        To send the message encrypted, enter a symbol (;) in the text box or click on the "Send" button.
+        To send the message unencrypted, click on the "U" button.
+
+How do I close a conversation?
+
+    In the Messages window in the contact list, select the nickname of the
+    conversation at which you want to close the conversation.
+    Then click on the "Close" button at the bottom right.
+
+
+The message ERROR tunnel settings incomplete appears.
+What can I do about it?
+
+    This message often appears when i2prm has ended but the connection continues. To fix this
+    error, start the Ruby script with the argument "rescue" ie ruby i2prm.rb rescue.
+    This process takes a bit. Finally, the message "Complete!" appear.
+    The whole issue should look something like this:
+    BOB API: OK Nickname set to i2pm
+    BOB API: OK tunnel stopping
+    BOB API: OK cleared
+    BOB API: ERROR no nickname has been set
+    BOB API: OK Bye!
+    Complete!
+
+What does the v, i, m and u mean in square brackets in messages?
+When an encrypted message is sent, it is automatically signed to
+confirm that it actually came from the sender. Unencrypted messages are not signed.
+
+    v(valid) means that the signature is valid.
+    i(invalid) means that the signature is invalid.
+    u(unencrypted) means that the message is unencrypted and therefore not signed.
+    m(me or myself) means that the message comes from yourself and is therefore also valid.
+
+How do I change the key strength?
+Note: To change this, you have to change the source code of the program.
+The default strength is 4096 bytes.
+This key is used to encrypt/decrypt the received messages.
+
+    Open the i2prm.rb file with any editor. However, I recommend using syntax highlighting for an overview.
+    Find the line with the following content: $mykeypair = Encryption::Keypair.new 4096
+    Replace the number 4096 with the desired key strength.
+
+How do I change the length of the verification string?
+Note: To change this, you have to change the source code of the program.
+The connection partner is sent a verification string to confirm that it has
+transmitted its real base64. The default length is 32 characters.
+
+    Open the i2prm.rb file with any editor. However, I recommend using syntax highlighting for an overview.
+    Find the line with the following content: $codelen = 32
+    Replace the number 32 with the desired key length.'
   
   require "fox16"
   
