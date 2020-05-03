@@ -22,8 +22,6 @@ def createdatabase cli
   privkey = OpenSSL::PKey::RSA.new 4096
   puts "Save private key to database"
   db["keypair-privkey"] = privkey.to_s.chars.map { |c| c == "\n" ? "|" : c }.join
-  puts "Save public key to database"
-  db["keypair-pubkey"] = privkey.public_key.to_s.chars.map { |c| c == "\n" ? "|" : c }.join
 
   puts "Create new I2P keys"
   cli.puts "newkeys"

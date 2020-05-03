@@ -22,14 +22,6 @@ else
   puts "Valid private key."
 end
 
-begin
-  OpenSSL::PKey::RSA.new db["keypair-pubkey"].chars.map { |c| c == "|" ? "\n" : c }.join
-rescue OpenSSL::PKey::RSAError => rsaerror
-  puts "Invalid public key: #{rsaerror.message}"
-else
-  puts "Valid public key."
-end
-
 cli = TCPSocket.new "127.0.0.1", 2827
 cli.gets; cli.gets
 
