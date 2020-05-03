@@ -176,13 +176,12 @@ require "openssl"
 $db = GDBM.new "i2prm.gdbm"
 at_exit { $db.close }
 
-if $db.has_key? "keypair-pubkey" and $db.has_key? "keypair-privkey"
-  $pubkey = OpenSSL::PKey::RSA.new $db["keypair-pubkey"].chars.map { |c| c == "|" ? "\n" : c }.join
+if $db.has_key? "keypair-privkey"
   $privkey = OpenSSL::PKey::RSA.new $db["keypair-privkey"].chars.map { |c| c == "|" ? "\n" : c }.join
+  $pubkey = $privkey.public_key
 else
   $privkey = OpenSSL::PKey::RSA.new 4096
   $pubkey = $privkey.public_key
-  $db["keypair-pubkey"] = $pubkey.to_s.chars.map { |c| c == "\n" ? "|" : c }.join
   $db["keypair-privkey"] = $privkey.to_s.chars.map { |c| c == "\n" ? "|" : c }.join
 end
 $sendpubkey = $db["keypair-pubkey"]
