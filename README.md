@@ -90,8 +90,7 @@ transmitted its real base64\. The default length is 32 characters.
 3.  Replace the number 32 with the desired key length.
 
 
-How can I activate the BOB API?
-===============================
+## How can I activate the BOB API?
 
 To do this, go to the settings of your I2P router at http://127.0.0.1:7657/configclients
 Under "BOB application bridge" you can see whether the BOB API has started and whether it is automatically started by the I2P router when it starts.
