@@ -221,6 +221,7 @@ $i2cpsettings["outbound.length"] = 3
 $i2cpsettings["inbound.quantity"] = 2
 $i2cpsettings["outbound.quantity"] = 2
 $i2cpsettings["i2cp.destination.sigType"] = "EdDSA_SHA512_Ed25519"
+$i2cpsettings["i2cp.leaseSetEncType"] = "4,0"
 
 def unpackKey packedkey, remname
   $keys[remname] = OpenSSL::PKey::RSA.new packedkey.chars.map { |c| c == "|" ? "\n" : c }.join
