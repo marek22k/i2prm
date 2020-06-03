@@ -387,7 +387,7 @@ class MsgWindow < Fox::FXMainWindow
       #rescue
       #  $consoleLabel.text = "#{$current} is offline."
       #end
-      receiveHandler $current, sendtextBox.text, false
+      receiveHandler $nickname, sendtextBox.text, false
       sendtextBox.text = ""
     end
   end
@@ -490,7 +490,7 @@ class OptionsWindow < Fox::FXMainWindow
         ans = sock.gets.chomp
         if ans[0..7] != "Hi. I am"
           sock.puts "Your answer caused a protocol error. I will now disconnect."
-          $consoleLabel.text = "protocol error: ans"
+          $consoleLabel.text = "protocol error: ans - #{ans}"
           sock.close
           Thread.current.exit
         end
