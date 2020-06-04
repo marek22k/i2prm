@@ -694,7 +694,11 @@ class OptionsWindow < Fox::FXMainWindow
         ans = sock.gets.chomp
         if ans[0..7] != "Hi. I am"
           sock.puts "Your answer caused a protocol error. I will now disconnect."
-          $consoleLabel.text = "protocol error: ans - #{ans}"
+          if ans.include? "java.net.NoRouteToHostException: Connection timed out"
+            $consoleLabel.text = "A connection to the partner could not be established. The router may not be integrated enough or the partner may be offline."
+          else
+            $consoleLabel.text = "protocol error: ans - #{ans}"
+          end
           sock.close
           Thread.current.exit
         end
