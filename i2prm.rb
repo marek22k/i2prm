@@ -382,10 +382,8 @@ class MsgWindow < Fox::FXMainWindow
     reconnectButton.connect SEL_COMMAND do
       if $current == ""
         $consoleLabel.text = "Please select a nickname."
-      elsif $sockss[$current].closed?
-        reconnectHandler
       else
-        $consoleLabel.text = "You are already connected to this contact."
+        reconnectHandler
       end
     end
     
@@ -456,12 +454,12 @@ class MsgWindow < Fox::FXMainWindow
         #p $myb64
         sleep 0.5
         
-        if ($consoleLabel.text = sock.gets.chomp) != "I will send you a verification message."
-          sock.puts "Your answer caused a protocol error. I will now disconnect."
+        if ($consoleLabel.text = sock.gets.chomp).include? "Your base64 is blocked."
+          $consoleLabel.text = "Your base64 was blocked."
           sock.close
           Thread.current.exit
-        elsif $consoleLabel.text == "Your base64 is blocked. I will now disconnect."
-          $consoleLabel.text = "Your base64 address will be blocked."
+        elsif $consoleLabel.text != "I will send you a verification message."
+          sock.puts "Your answer caused a protocol error. I will now disconnect."
           sock.close
           Thread.current.exit
         end
@@ -569,19 +567,19 @@ class MsgWindow < Fox::FXMainWindow
     if sock.closed?
       $consoleLabel.text = "#{$current} is offline."
     else
-      #begin
-        if enc
-          codmsg = $keys[$current].public_encrypt(sendtextBox.text).bytes.join " "
-          sock.puts "I have an encrypted message for you - #{codmsg} ;verify=#{$privkey.sign($digest, codmsg).bytes.join " "};"
-        else
-          sock.puts "I have a message for you - #{sendtextBox.text}"
-        end
-
-      #rescue
-      #  $consoleLabel.text = "#{$current} is offline."
-      #end
-      receiveHandler $nickname, sendtextBox.text, false
+      begin
+      if enc
+        codmsg = $keys[$current].public_encrypt(sendtextBox.text).bytes.join " "
+        sock.puts "I have an encrypted message for you - #{codmsg} ;verify=#{$privkey.sign($digest, codmsg).bytes.join " "};"
+      else
+        sock.puts "I have a message for you - #{sendtextBox.text}"
+      end
+        
+      receiveHandler $current, sendtextBox.text, false
       sendtextBox.text = ""
+      rescue Errno::EPIPE => e
+        $consoleLabel.text = "#{$current} is offline."
+      end
     end
   end
   
@@ -713,12 +711,12 @@ class OptionsWindow < Fox::FXMainWindow
         #p $myb64
         sleep 0.5
 
-        if ($consoleLabel.text = sock.gets.chomp) != "I will send you a verification message."
-          sock.puts "Your answer caused a protocol error. I will now disconnect."
+        if ($consoleLabel.text = sock.gets.chomp).include? "Your base64 is blocked."
+          $consoleLabel.text = "Your base64 was blocked."
           sock.close
           Thread.current.exit
-        elsif $consoleLabel.text == "Your base64 is blocked. I will now disconnect."
-          $consoleLabel.text = "Your base64 address will be blocked."
+        elsif $consoleLabel.text != "I will send you a verification message."
+          sock.puts "Your answer caused a protocol error. I will now disconnect."
           sock.close
           Thread.current.exit
         end
@@ -853,7 +851,7 @@ class OptionsWindow < Fox::FXMainWindow
         $consoleLabel.text = $cli.gets.chomp
         $consoleLabel.text = $cli.gets.chomp
         
-        $cli.puts "setnick i2pm"
+        $cli.puts "setnick i2prm"
         $consoleLabel.text = $cli.gets.chomp
         
         $i2cpsettings.each_pair { |set, val|
@@ -936,7 +934,7 @@ class OptionsWindow < Fox::FXMainWindow
               $cli.puts "verify #{b64}"
               if $blocklist.include? b64
                 sock.puts "Your base64 is blocked. I will now disconnect."
-                $consoleLabel.text = "#{remname} tried to connect. It was blocked."
+                $consoleLabel.text = "Someone (#{b64[0...8]}) tried to connect. It was blocked."
                 sock.close
                 Thread.current.exit
               end
@@ -1013,6 +1011,8 @@ class OptionsWindow < Fox::FXMainWindow
                       receiveHandler remname, msg[27..-1]
                     elsif msg[0..37] == "I have an encrypted message for you - "
                       receiveEncHandler remname, msg[38..-1]
+                    elsif msg[0...4] == "ping"
+                      sock.puts "pong"
                     end
                   end
                 rescue
