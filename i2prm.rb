@@ -322,6 +322,8 @@ class MsgWindow < Fox::FXMainWindow
     closeButton = FXButton.new listFrame, "Close conversation"
     blockButton = FXButton.new listFrame, "Block user"
     unblockButton = FXButton.new listFrame, "Unblock user"
+    blockButton.disable
+    unblockButton.disable
     
     msgFrame = FXVerticalFrame.new mainFrame, :opts => LAYOUT_FILL
     $msgBox = FXText.new msgFrame, :opts => LAYOUT_FILL|TEXT_AUTOSCROLL
