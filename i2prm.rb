@@ -1,4 +1,5 @@
 
+
 =begin
 Copyright 2020 Marek Küthe
 
@@ -218,6 +219,8 @@ $i2cpsettings["inbound.backupQuantity"] = 1
 $i2cpsettings["outbound.backupQuantity"] = 1
 $i2cpsettings["inbound.length"] = 3
 $i2cpsettings["outbound.length"] = 3
+$i2cpsettings["inbound.length"] = 0
+$i2cpsettings["outbound.length"] = 0
 $i2cpsettings["inbound.quantity"] = 2
 $i2cpsettings["outbound.quantity"] = 2
 $i2cpsettings["i2cp.destination.sigType"] = "EdDSA_SHA512_Ed25519"
@@ -283,6 +286,23 @@ end
 def buttonDark obj
   obj.backColor = Fox.FXRGB(26, 26, 26)
   obj.textColor = Fox.FXRGB(255, 255, 255)
+end
+
+  
+def ParseHTTPResponse ans
+  head = Hash.new
+  lins = ans.lines
+  
+  fw = lins[0].index " "
+  
+  i = 1
+  while i < lins.length
+    fw = lins[i].index ":"
+    head[lins[i][0...fw]] = lins[i][fw+2..-1].chomp
+    i += 1
+  end
+  
+  return head
 end
 
 class MsgWindow < Fox::FXMainWindow
@@ -416,7 +436,18 @@ class OptionsWindow < Fox::FXMainWindow
     nicknameFrame = FXHorizontalFrame.new self, :padBottom => 3
     nicknameBoxLabel = FXLabel.new nicknameFrame, "Nickname:"
     nicknameBox = FXTextField.new nicknameFrame, 20, :opts => LAYOUT_FILL_X
-    nicknameBox.text = randomcode 7
+    
+    if $db.has_key? "nickname"
+      nicknameBox.text = $db["nickname"]
+    else
+      nicknameBox.text = randomcode 7
+      $db["nickname"] = nicknameBox.text
+    end
+    
+    nicknameBox.connect(SEL_CHANGED) do
+      $db["nickname"] = nicknameBox.text
+    end
+    
     connectButton = FXButton.new nicknameFrame, "Connect"
     if $dark
       connectButton.borderColor = Fox.FXRGB(0, 255, 255)
@@ -691,9 +722,32 @@ class OptionsWindow < Fox::FXMainWindow
               sock.gets
               sock.puts "Hi. I am _#{$nickname}_ What do you want?"
               wanted = sock.gets.chomp
+              p wanted
               if wanted[0..14] == "Your code from "
                 mat = /Your code from _(.*)_ is _(.*)_./.match(wanted)
                 $codes[mat[1]] = mat[2]
+                sock.close
+                Thread.current.exit
+              elsif  wanted[0..4] == "GET /" || wanted == "I would like information about this i2prm."
+                data = wanted + "\n"
+                while (ans = sock.gets).chop != ""
+                  data += ans
+                end
+                #pp resp = HTTPServResponse.new(data).parse!
+                head = ParseHTTPResponse data
+                sock.puts
+                if head.has_key? "Host"
+                  sock.puts "You make a request to #{head["Host"].to_s} with the user agent #{head["User-Agent"].to_s}."
+                  sock.puts "This is the address of an i2prm messenger."
+                else
+                  sock.puts "You make a request to an address of an i2prm messenger."
+                end
+                sock.puts
+                sock.puts "User information:"
+                sock.puts " - Nickname: #{$nickname}"
+                sock.puts " - base64: #{$myb64}"
+                sock.puts " - Public key: #{$pubkey.to_s}"
+                sock.puts " - Hash: #{Digest::SHA512.base64digest $pubkey.to_s}"
                 sock.close
                 Thread.current.exit
               end
