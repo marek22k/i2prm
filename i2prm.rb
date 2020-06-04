@@ -219,8 +219,8 @@ $i2cpsettings["inbound.backupQuantity"] = 1
 $i2cpsettings["outbound.backupQuantity"] = 1
 $i2cpsettings["inbound.length"] = 3
 $i2cpsettings["outbound.length"] = 3
-$i2cpsettings["inbound.length"] = 0
-$i2cpsettings["outbound.length"] = 0
+#$i2cpsettings["inbound.length"] = 0
+#$i2cpsettings["outbound.length"] = 0
 $i2cpsettings["inbound.quantity"] = 2
 $i2cpsettings["outbound.quantity"] = 2
 $i2cpsettings["i2cp.destination.sigType"] = "EdDSA_SHA512_Ed25519"
@@ -357,6 +357,14 @@ class MsgWindow < Fox::FXMainWindow
       $current = $contactsBox.getItem(sender.currentItem).text
       $msgBox.text = $msgs[$current].nil? ? "":$msgs[$current]
       $b64ShowBox.text = $b64ss[$current]
+      if $blocklist.include? $b64ss[$current]
+        blockButton.disable
+        unblockButton.enable
+      else
+        blockButton.enable
+        unblockButton.disable
+      end
+      
     end
     
     sendButton.connect(SEL_COMMAND) { sendHandler sendtextBox }
@@ -370,10 +378,14 @@ class MsgWindow < Fox::FXMainWindow
     
     blockButton.connect SEL_COMMAND do
       $blocklist << $b64ss[$current]
+      blockButton.disable
+      unblockButton.enable
     end
     
     unblockButton.connect SEL_COMMAND do
       $blocklist.delete $b64ss[$current]
+      blockButton.enable
+      unblockButton.disable
     end
     
     sendtextBox.connect(SEL_CHANGED) do
@@ -722,7 +734,7 @@ class OptionsWindow < Fox::FXMainWindow
               sock.gets
               sock.puts "Hi. I am _#{$nickname}_ What do you want?"
               wanted = sock.gets.chomp
-              p wanted
+              
               if wanted[0..14] == "Your code from "
                 mat = /Your code from _(.*)_ is _(.*)_./.match(wanted)
                 $codes[mat[1]] = mat[2]
@@ -733,7 +745,7 @@ class OptionsWindow < Fox::FXMainWindow
                 while (ans = sock.gets).chop != ""
                   data += ans
                 end
-                #pp resp = HTTPServResponse.new(data).parse!
+                
                 head = ParseHTTPResponse data
                 sock.puts
                 if head.has_key? "Host"
